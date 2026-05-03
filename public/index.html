@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartNews – Personalised News</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css"
+          integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS+JXm" crossorigin="anonymous">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="newsletter-styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <script>
+        (function() {
+          if (typeof emailjs !== 'undefined') {
+            emailjs.init({ publicKey: "vkp8zYJCWQ3Ncvudb" });
+          }
+        })();
+    </script>
+    <!-- auth.js loaded early so session is available to navbar -->
+    <script src="auth.js"></script>
+</head>
+<body>
+
+    <!-- Global Navbar — populated by GlobalNavbar.init() below -->
+    <div id="global-navbar"></div>
+
+    <!-- Main news grid -->
+    <main id="main-news-section">
+        <div class="cards-container container flex" id="cards-container"></div>
+    </main>
+
+    <!-- Toggle button -->
+    <div class="view-toggle">
+        <button class="toggle-btn" id="toggle-recommended-btn" onclick="toggleRecommendedView()">
+            📊 View Recommended For You
+        </button>
+    </div>
+
+    <!-- Recommended section (hidden by default) -->
+    <main class="hidden" id="recommended-section">
+        <div class="section-header container">
+            <h2 class="section-title">Recommended For You</h2>
+            <button class="clear-preferences-btn"
+              onclick="if(typeof clearUserPreferences==='function') clearUserPreferences(); location.reload();">
+                Clear Preferences
+            </button>
+        </div>
+        <div class="cards-container container flex" id="recommended-cards-container"></div>
+    </main>
+
+    <!-- News card template -->
+    <template id="template-news-card">
+        <div class="card">
+            <div class="card-header">
+                <img src="" alt="news-image" id="news-img" width="400" height="200" loading="lazy"/>
+            </div>
+            <div class="card-content">
+                <h3 id="news-title">Title</h3>
+                <h6 class="news-source" id="news-source">Source · Date</h6>
+                <p class="news-desc" id="news-desc">Description.</p>
+            </div>
+            <div class="card-footer">
+                <span class="sentiment-badge" id="sentiment-badge">Neutral</span>
+                <button class="interested-btn" id="interested-btn">Interested</button>
+            </div>
+        </div>
+    </template>
+
+    <!-- Newsletter footer -->
+    <footer>
+        <div class="container border mt-3 bg-light">
+            <div class="row">
+                <div class="col-md-6 p-5 bg-primary text-white">
+                    <h1>Stay Updated!</h1>
+                    <h4>Subscribe to our Newsletter</h4>
+                    <p>Get personalized news delivered straight to your inbox based on your interests.</p>
+                    <ul style="list-style:none;padding:0;margin-top:20px;">
+                        <li>✔ Choose your delivery frequency</li>
+                        <li>✔ Filter by keywords you care about</li>
+                        <li>✔ Unsubscribe anytime</li>
+                    </ul>
+                </div>
+                <div class="col-md-6 border-left py-3 px-4">
+                    <h2>Newsletter Subscription</h2>
+                    <div class="form-group">
+                        <label for="nl-name"><strong>Your Name</strong></label>
+                        <input type="text" class="form-control" id="name" placeholder="Enter your name" required/>
+                    </div>
+                    <div class="form-group">
+                        <label for="nl-email"><strong>Email Address</strong></label>
+                        <input type="email" class="form-control" id="email" placeholder="Enter your email" required/>
+                    </div>
+                    <div class="form-group">
+                        <label><strong>Delivery Frequency</strong></label>
+                        <div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="frequency" id="daily-digest" value="daily" checked/>
+                                <label class="form-check-label" for="daily-digest">Daily Digest</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="frequency" id="weekly-digest" value="weekly"/>
+                                <label class="form-check-label" for="weekly-digest">Weekly Digest</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="frequency" id="monthly-digest" value="monthly"/>
+                                <label class="form-check-label" for="monthly-digest">Monthly Digest</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="keywords"><strong>Keywords to Include</strong></label>
+                        <input type="text" class="form-control" id="keywords" placeholder="e.g., technology, finance, sports"/>
+                        <small class="form-text text-muted">Enter topics separated by commas</small>
+                    </div>
+                    <button class="btn btn-primary btn-block" onclick="if(typeof subscribeNewsletter==='function') subscribeNewsletter()">
+                        Subscribe to Newsletter
+                    </button>
+                    <div id="newsletter-success" class="alert alert-success mt-2" style="display:none;">
+                        <strong>Success!</strong> You've subscribed! Check your email.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!--
+      LOAD ORDER (critical):
+      1. navbar.js   — defines GlobalNavbar (no DOM access yet)
+      2. sentiment   — defines analyzeSentiment / extractKeywords
+      3. prefs       — defines trackInterest / loadUserPreferences etc.
+      4. newsletter  — defines subscribeNewsletter
+      5. script.js   — defines fetchNews / bindData etc.
+      6. Inline init — calls GlobalNavbar.init() AFTER all scripts loaded
+    -->
+    <script src="components/navbar.js"></script>
+    <script src="sentiment-analysis.js"></script>
+    <script src="user-preferences.js"></script>
+    <script src="newsletter.js"></script>
+    <script src="script.js"></script>
+    <script>
+      // Init navbar — wire category and search to script.js functions
+      GlobalNavbar.init({
+        activePage: 'home',
+        onCategorySelect: function(cat) {
+          // clear category label on new selection
+          if (typeof fetchNews === 'function') fetchNews(cat);
+        },
+        onSearch: function(q) {
+          if (!q) return;
+          // clear category selection when searching manually
+          document.querySelectorAll('.category-option').forEach(i => i.classList.remove('selected'));
+          const lbl = document.getElementById('category-label');
+          if (lbl) lbl.textContent = 'Category';
+          if (typeof fetchNews === 'function') fetchNews(q);
+        }
+      });
+    </script>
+</body>
+</html>

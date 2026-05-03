@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>News Platform – Sign In</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f0f4f8;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.card{background:#fff;border-radius:14px;box-shadow:0 4px 24px rgba(0,0,0,.1);padding:40px;width:100%;max-width:420px}
+.logo{text-align:center;margin-bottom:24px}
+.logo h1{font-size:22px;font-weight:700;color:#0f172a;margin-top:10px}
+.logo p{font-size:14px;color:#64748b;margin-top:4px}
+.tabs{display:flex;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;margin-bottom:24px}
+.tab{flex:1;padding:10px;background:none;border:none;font-size:14px;font-weight:500;color:#64748b;cursor:pointer}
+.tab.active{background:#0284c7;color:#fff}
+.panel{display:none}.panel.active{display:block}
+.form-group{margin-bottom:16px}
+label{display:block;font-size:13px;font-weight:500;margin-bottom:5px;color:#374151}
+input{width:100%;padding:11px 14px;font-size:14px;border:1px solid #d1d5db;border-radius:8px;transition:.2s}
+input:focus{outline:none;border-color:#0284c7;box-shadow:0 0 0 3px rgba(2,132,199,.15)}
+.btn{width:100%;padding:12px;font-size:15px;font-weight:600;color:#fff;background:#0284c7;border:none;border-radius:8px;cursor:pointer;margin-top:6px;transition:.2s}
+.btn:hover{background:#0369a1}.btn:disabled{opacity:.6;cursor:not-allowed}
+.msg{padding:11px 14px;border-radius:8px;font-size:13px;margin-bottom:16px;display:none}
+.err{background:#fef2f2;color:#dc2626;border:1px solid #fca5a5}
+.suc{background:#f0fdf4;color:#16a34a;border:1px solid #86efac}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">
+    <svg width="44" height="44" viewBox="0 0 44 44"><rect width="44" height="44" rx="10" fill="#0284c7"/><rect x="9" y="11" width="26" height="3" rx="1.5" fill="white"/><rect x="9" y="18" width="18" height="3" rx="1.5" fill="white" opacity=".8"/><rect x="9" y="25" width="22" height="3" rx="1.5" fill="white" opacity=".6"/><rect x="9" y="32" width="14" height="3" rx="1.5" fill="white" opacity=".4"/></svg>
+    <h1>News Platform</h1><p id="sub">Sign in to your account</p>
+  </div>
+  <div class="tabs">
+    <button class="tab active" onclick="go('login')">Sign In</button>
+    <button class="tab" onclick="go('register')">Create Account</button>
+  </div>
+  <!-- LOGIN -->
+  <div class="panel active" id="p-login">
+    <div class="msg err" id="le"></div><div class="msg suc" id="ls"></div>
+    <form onsubmit="doLogin(event)">
+      <div class="form-group"><label>Email</label><input type="email" id="li-email" placeholder="you@example.com" required></div>
+      <div class="form-group"><label>Password</label><input type="password" id="li-pass" placeholder="Your password" required></div>
+      <button class="btn" id="li-btn">Sign In</button>
+    </form>
+  </div>
+  <!-- REGISTER -->
+  <div class="panel" id="p-register">
+    <div class="msg err" id="re"></div><div class="msg suc" id="rs"></div>
+    <form onsubmit="doRegister(event)">
+      <div class="form-group"><label>Name (optional)</label><input type="text" id="r-name" placeholder="Your name"></div>
+      <div class="form-group"><label>Email</label><input type="email" id="r-email" placeholder="you@example.com" required></div>
+      <div class="form-group"><label>Password (min 6 chars)</label><input type="password" id="r-pass" placeholder="Create a password" required></div>
+      <button class="btn" id="r-btn">Create Account</button>
+    </form>
+  </div>
+</div>
+<script>
+(async()=>{const t=sessionStorage.getItem('authToken');if(!t)return;try{const r=await fetch('/api/verify',{headers:{Authorization:'Bearer '+t}});if((await r.json()).valid)window.location.replace('/index.html');}catch{}})();
+function go(tab){
+  ['p-login','p-register'].forEach((id,i)=>document.getElementById(id).classList.toggle('active',i===(tab==='login'?0:1)));
+  document.querySelectorAll('.tab').forEach((b,i)=>b.classList.toggle('active',i===(tab==='login'?0:1)));
+  document.getElementById('sub').textContent=tab==='login'?'Sign in to your account':'Create a new account';
+  ['le','ls','re','rs'].forEach(id=>{const e=document.getElementById(id);e.style.display='none';e.textContent='';});
+}
+function show(id,txt){const e=document.getElementById(id);e.textContent=txt;e.style.display='block';}
+async function doLogin(e){
+  e.preventDefault();const btn=document.getElementById('li-btn');btn.disabled=true;btn.textContent='Signing in…';
+  try{
+    const res=await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:document.getElementById('li-email').value.trim(),password:document.getElementById('li-pass').value})});
+    const d=await res.json();
+    if(!res.ok){show('le',d.error);return;}
+    sessionStorage.setItem('authToken',d.token);sessionStorage.setItem('userEmail',d.email);sessionStorage.setItem('userName',d.name||d.email);
+    window.location.replace('/index.html');
+  }catch{show('le','Cannot reach server. Run: npm start');}
+  finally{btn.disabled=false;btn.textContent='Sign In';}
+}
+async function doRegister(e){
+  e.preventDefault();const btn=document.getElementById('r-btn');btn.disabled=true;btn.textContent='Creating…';
+  try{
+    const res=await fetch('/api/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:document.getElementById('r-email').value.trim(),password:document.getElementById('r-pass').value,name:document.getElementById('r-name').value.trim()})});
+    const d=await res.json();
+    if(!res.ok){show('re',d.error);return;}
+    show('rs',d.message+' Redirecting to Sign In…');
+    document.querySelector('#p-register form').reset();
+    setTimeout(()=>go('login'),1800);
+  }catch{show('re','Cannot reach server. Run: npm start');}
+  finally{btn.disabled=false;btn.textContent='Create Account';}
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard – NewsWave</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="dashboard-styles.css">
+    <script src="auth.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+</head>
+<body>
+    <div id="global-navbar"></div>
+
+    <main class="dashboard-page">
+        <div class="dashboard-container">
+            <div class="dashboard-header">
+                <h1>Your Reading Journey</h1>
+                <p id="dashboard-greeting">Track your reading patterns and discover your favourite topics</p>
+            </div>
+            <div class="dashboard-section">
+                <div class="section-title">Weekly Top Categories</div>
+                <div class="timeline-container">
+                    <div class="timeline" id="timeline"></div>
+                </div>
+            </div>
+            <div class="dashboard-section">
+                <div class="section-title">Reading Distribution by Category</div>
+                <div class="chart-container">
+                    <canvas id="categoryChart"></canvas>
+                </div>
+            </div>
+            <div class="dashboard-section">
+                <div class="section-title">Your Reading Statistics</div>
+                <div class="stats-grid" id="statsGrid"></div>
+            </div>
+        </div>
+    </main>
+
+    <script src="components/navbar.js"></script>
+    <script src="user-preferences.js"></script>
+    <script src="dashboard-logic.js"></script>
+    <script>
+      GlobalNavbar.init({
+        activePage: 'dashboard',
+        onSearch: function(q) {
+          if (q) window.location.href = '/index.html?q=' + encodeURIComponent(q);
+        },
+        onCategorySelect: function(cat) {
+          window.location.href = '/index.html?q=' + encodeURIComponent(cat);
+        }
+      });
+    </script>
+</body>
+</html>

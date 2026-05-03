@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Community – NewsWave</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="community-styles.css">
+    <script src="auth.js"></script>
+</head>
+<body>
+    <div id="global-navbar"></div>
+
+    <div class="community-layout">
+        <aside class="community-feed" id="community-feed">
+            <div class="feed-header">
+                <h2 class="feed-title">Today's Discussions</h2>
+                <span class="feed-subtitle" id="feed-count">Loading articles…</span>
+            </div>
+            <div id="community-cards-list">
+                <!-- Cards rendered by community.js -->
+            </div>
+        </aside>
+
+        <main class="community-discussion" id="discussion-panel">
+            <div class="discussion-empty-state" id="discussion-empty">
+                <div class="empty-icon">💬</div>
+                <h3>Select an article to start the discussion</h3>
+                <p>Click any news card on the left to read comments and share your thoughts.</p>
+            </div>
+            <div class="discussion-content hidden" id="discussion-content">
+                <div class="active-article" id="active-article-header">
+                    <img id="active-img" src="" alt="" class="active-article-img" loading="lazy"/>
+                    <div class="active-article-info">
+                        <span class="active-source" id="active-source"></span>
+                        <h3 class="active-title" id="active-title"></h3>
+                        <a class="active-read-link" id="active-link" href="#" target="_blank" rel="noopener noreferrer">Read full article →</a>
+                    </div>
+                </div>
+                <div class="discussion-stats">
+                    <span id="comment-count-label">0 comments</span>
+                    <span class="stat-dot">·</span>
+                    <span id="participant-count-label">0 participants</span>
+                </div>
+                <div class="comments-list" id="comments-list"></div>
+                <div class="new-comment-form" id="new-comment-box">
+                    <div class="comment-avatar" id="form-avatar">U</div>
+                    <div class="comment-input-wrapper">
+                        <textarea id="new-comment-text" class="comment-textarea"
+                          placeholder="Share your thoughts on this article…" rows="3"></textarea>
+                        <div class="comment-form-actions">
+                            <span class="comment-rules">Be respectful · No spam</span>
+                            <button class="post-comment-btn" id="post-comment-btn"
+                              onclick="if(typeof postComment==='function') postComment()">
+                              Post Comment
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="components/navbar.js"></script>
+    <script src="sentiment-analysis.js"></script>
+    <script src="user-preferences.js"></script>
+    <script src="community.js"></script>
+    <script>
+      GlobalNavbar.init({
+        activePage: 'community',
+        onSearch: function(q) {
+          if (q) window.location.href = '/index.html?q=' + encodeURIComponent(q);
+        },
+        onCategorySelect: function(cat) {
+          window.location.href = '/index.html?q=' + encodeURIComponent(cat);
+        }
+      });
+      // Set comment form avatar initial from session
+      (function(){
+        const email = sessionStorage.getItem('userEmail') || '';
+        const name  = sessionStorage.getItem('userName') || email.split('@')[0] || 'U';
+        const av = document.getElementById('form-avatar');
+        if (av) av.textContent = name.charAt(0).toUpperCase();
+      })();
+    </script>
+</body>
+</html>

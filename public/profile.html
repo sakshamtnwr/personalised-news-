@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Information – NewsWave</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="profile-styles.css">
+    <script src="auth.js"></script>
+</head>
+<body>
+    <div id="global-navbar"></div>
+
+    <main class="profile-page">
+      <div class="profile-container">
+        <div class="profile-card">
+
+          <div class="profile-card-header">
+            <div class="profile-big-avatar" id="profile-big-avatar">👤</div>
+            <div>
+              <h1 class="profile-heading">Personal Information</h1>
+              <p class="profile-subheading">Manage your account details and news preferences</p>
+            </div>
+          </div>
+
+          <form class="profile-form" id="profile-form" autocomplete="off" onsubmit="saveProfile(event)" novalidate>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="prof-name">Full Name</label>
+                <input type="text" id="prof-name" placeholder="Enter your full name" maxlength="80"/>
+              </div>
+              <div class="form-group">
+                <label for="prof-username">Username</label>
+                <input type="text" id="prof-username" placeholder="e.g. saksham_dev" maxlength="40"/>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="prof-email">Email Address</label>
+                <input type="email" id="prof-email" placeholder="you@example.com"
+                  readonly class="input-readonly" tabindex="-1"/>
+                <small class="form-hint">Email is set at login and cannot be changed here.</small>
+              </div>
+              <div class="form-group">
+                <label for="prof-phone">Phone Number</label>
+                <input type="tel" id="prof-phone" placeholder="+91 98765 43210" maxlength="20"/>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="prof-location">Location</label>
+                <input type="text" id="prof-location" placeholder="e.g. Delhi, India" maxlength="80"/>
+              </div>
+              <div class="form-group">
+                <label for="prof-dob">Date of Birth</label>
+                <input type="date" id="prof-dob"/>
+              </div>
+            </div>
+
+            <div class="form-group form-group--full">
+              <label for="prof-bio">Bio</label>
+              <textarea id="prof-bio" placeholder="Tell us a little about yourself…"
+                rows="3" maxlength="300"></textarea>
+              <small class="form-hint char-counter"><span id="bio-count">0</span>/300 characters</small>
+            </div>
+
+            <div class="form-section-title">News Preferences</div>
+
+            <div class="form-group form-group--full">
+              <label>Favourite Categories <small class="form-hint">(click to toggle)</small></label>
+              <div class="category-chips" id="category-chips">
+                <button type="button" class="chip" data-cat="Technology">💻 Technology</button>
+                <button type="button" class="chip" data-cat="Finance">💰 Finance</button>
+                <button type="button" class="chip" data-cat="Politics">🏛️ Politics</button>
+                <button type="button" class="chip" data-cat="Social">👥 Social</button>
+                <button type="button" class="chip" data-cat="Trending">🔥 Trending</button>
+                <button type="button" class="chip" data-cat="Science">🔬 Science</button>
+                <button type="button" class="chip" data-cat="Sports">⚽ Sports</button>
+                <button type="button" class="chip" data-cat="Health">🏥 Health</button>
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <!-- Sign Out — left side -->
+              <button type="button" class="btn-signout" id="signout-btn" onclick="handleSignOut()">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                Sign Out
+              </button>
+              <!-- Save — right side -->
+              <div class="form-actions-right">
+                <div class="save-status" id="save-status" role="status" aria-live="polite"></div>
+                <button type="submit" class="btn-save" id="save-btn">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                  Save Changes
+                </button>
+              </div>
+            </div>
+
+          </form>
+        </div>
+      </div>
+    </main>
+
+    <script src="components/navbar.js"></script>
+    <script src="user-preferences.js"></script>
+    <script>
+      // Init navbar with profile as active page
+      GlobalNavbar.init({ activePage: 'profile' });
+
+      // ── Storage helpers ──────────────────────────────────
+      function profileKey() {
+        return 'newsProfile_' + (sessionStorage.getItem('userEmail') || 'guest');
+      }
+
+      function loadProfile() {
+        try {
+          const raw = localStorage.getItem(profileKey());
+          return raw ? JSON.parse(raw) : {};
+        } catch(e) { return {}; }
+      }
+
+      // ── Populate form from saved data ─────────────────────
+      function populateForm() {
+        const p     = loadProfile();
+        const email = sessionStorage.getItem('userEmail') || '';
+        const sName = sessionStorage.getItem('userName') || '';
+
+        document.getElementById('prof-name').value     = p.name     || sName || '';
+        document.getElementById('prof-username').value = p.username || '';
+        document.getElementById('prof-email').value    = email;
+        document.getElementById('prof-phone').value    = p.phone    || '';
+        document.getElementById('prof-location').value = p.location || '';
+        document.getElementById('prof-dob').value      = p.dob      || '';
+        document.getElementById('prof-bio').value      = p.bio      || '';
+        document.getElementById('bio-count').textContent = (p.bio || '').length;
+
+        if (Array.isArray(p.categories)) {
+          document.querySelectorAll('.chip').forEach(chip => {
+            if (p.categories.includes(chip.dataset.cat)) chip.classList.add('chip--active');
+          });
+        }
+
+        const displayName = p.name || sName || email.split('@')[0] || '?';
+        const avatarEl = document.getElementById('profile-big-avatar');
+        if (avatarEl) avatarEl.textContent = displayName.charAt(0).toUpperCase();
+      }
+
+      // ── Save handler ──────────────────────────────────────
+      function saveProfile(e) {
+        e.preventDefault();
+        const saveBtn  = document.getElementById('save-btn');
+        const statusEl = document.getElementById('save-status');
+
+        const selectedCats = [];
+        document.querySelectorAll('.chip.chip--active').forEach(c => selectedCats.push(c.dataset.cat));
+
+        const profileData = {
+          name:       document.getElementById('prof-name').value.trim(),
+          username:   document.getElementById('prof-username').value.trim(),
+          phone:      document.getElementById('prof-phone').value.trim(),
+          location:   document.getElementById('prof-location').value.trim(),
+          dob:        document.getElementById('prof-dob').value,
+          bio:        document.getElementById('prof-bio').value.trim(),
+          categories: selectedCats,
+          updatedAt:  new Date().toISOString()
+        };
+
+        try {
+          localStorage.setItem(profileKey(), JSON.stringify(profileData));
+        } catch(err) {
+          statusEl.textContent = '⚠ Could not save — storage unavailable.';
+          statusEl.className = 'save-status save-status--error';
+          return;
+        }
+
+        // Update session name so navbar refreshes
+        if (profileData.name) {
+          sessionStorage.setItem('userName', profileData.name);
+          GlobalNavbar.populateUser();
+        }
+
+        // Update avatar
+        const avatarEl = document.getElementById('profile-big-avatar');
+        if (avatarEl && profileData.name) {
+          avatarEl.textContent = profileData.name.charAt(0).toUpperCase();
+        }
+
+        // Success feedback
+        saveBtn.classList.add('btn-save--success');
+        saveBtn.innerHTML = `
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+          Saved!`;
+        statusEl.textContent = '✓ Changes saved successfully.';
+        statusEl.className = 'save-status save-status--success';
+
+        setTimeout(() => {
+          saveBtn.classList.remove('btn-save--success');
+          saveBtn.innerHTML = `
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2.5" aria-hidden="true">
+              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+              <polyline points="17 21 17 13 7 13 7 21"/>
+              <polyline points="7 3 7 8 15 8"/>
+            </svg>
+            Save Changes`;
+          statusEl.textContent = '';
+          statusEl.className = 'save-status';
+        }, 3000);
+      }
+
+      // ── Bio character counter ─────────────────────────────
+      document.getElementById('prof-bio').addEventListener('input', function() {
+        document.getElementById('bio-count').textContent = this.value.length;
+      });
+
+      // ── Category chip toggle ──────────────────────────────
+      document.getElementById('category-chips').addEventListener('click', (e) => {
+        const chip = e.target.closest('.chip');
+        if (chip) chip.classList.toggle('chip--active');
+      });
+
+      // ── Init ─────────────────────────────────────────────
+      populateForm();
+    
+      function handleSignOut() {
+        if (!confirm('Are you sure you want to sign out?')) return;
+        sessionStorage.clear();
+        localStorage.removeItem('authToken');
+        window.location.href = '/login.html';
+      }
+    </script>
+</body>
+</html>
