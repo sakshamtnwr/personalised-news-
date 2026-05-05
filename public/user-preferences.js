@@ -1,4 +1,4 @@
-// Returns a storage key unique to the logged-in user
+
 function getUserStorageKey() {
     const email = sessionStorage.getItem('userEmail') || 'guest';
     return 'newsPrefs_' + email;

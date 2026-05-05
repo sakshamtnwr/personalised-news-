@@ -1,8 +1,4 @@
-/* ==============================================================
-   community.js  –  Community Page Logic
-   Fetches news, renders cards in single column,
-   manages threaded comments via /api/comments (JSON file).
-   ============================================================== */
+
 
 const API_KEY = "7c6beaed882a445a91bc1cb4a7d02670";
 const NEWS_URL = "https://newsapi.org/v2/everything?q=";

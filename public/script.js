@@ -2,12 +2,7 @@ const API_KEY = "7c6beaed882a445a91bc1cb4a7d02670";
 const url = "https://newsapi.org/v2/everything?q=";
 const MAX_ARTICLES = 20;
 
-// ─── FIX 1: defer search-button binding until DOM is fully ready ──────────────
-// script.js no longer directly binds #search-button or #search-text
-// because those elements now live inside navbar.js and are injected dynamically.
-// The GlobalNavbar.init() call in the HTML handles search/category binding.
 
-// ─── Load page ────────────────────────────────────────────────────────────────
 window.addEventListener("load", () => {
     const params = new URLSearchParams(window.location.search);
     const q = params.get("q");

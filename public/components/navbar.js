@@ -1,8 +1,4 @@
-/**
- * GlobalNavbar — Reusable navbar component for NewsWave
- * FIX: overflow removed, category dropdown uses position:absolute + high z-index
- * FIX: Profile is now a direct nav button (no dropdown) → navigates to profile.html
- */
+
 
 const GlobalNavbar = (() => {
 

@@ -1,9 +1,4 @@
-/* ============================================================
-   COMMUNITY PAGE STYLES
-   Integrates with existing style.css tokens + design system
-   ============================================================ */
 
-/* --- Layout ------------------------------------------------- */
 .community-layout {
     display: grid;
     grid-template-columns: 400px 1fr;
